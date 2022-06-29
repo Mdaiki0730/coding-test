@@ -1,7 +1,6 @@
 package main
 
 import(
-  "fmt"
   "bufio"
   "os"
   "math"
@@ -9,19 +8,31 @@ import(
   "strings"
 )
 
-// https://atcoder.jp/contests/abc040/tasks/abc040_c
+var (
+	scanner = bufio.NewScanner(os.Stdin)
+	writer = bufio.NewWriter(os.Stdout)
+)
+
+const (
+	initBufSize = 1
+	maxBufSize  = 100000 * 10000 + 99999
+)
+
+func init() {
+	buf := make([]byte, initBufSize)
+	scanner.Buffer(buf, maxBufSize)
+}
 
 func main() {
+  defer writer.Flush()
   n, a := ScanStdIn()
-  fmt.Println(n, a)
 
   cost := CaliculateCost(n, a)
 
-  fmt.Printf("%v\n", cost)
+  writer.WriteString(strconv.Itoa(cost) + "\n")
 }
 
 func ScanStdIn() (int, []int) {
-  scanner := bufio.NewScanner(os.Stdin)
   // scan n
   var n int
   scanner.Scan()
@@ -39,20 +50,17 @@ func ScanStdIn() (int, []int) {
 }
 
 func CaliculateCost(n int, a []int) int {
-  var cost int = 0
-  for i := 0; i < len(a)-1; i++ {
-    if i == len(a)-2 {
-      cost += int(math.Abs(float64(a[len(a)-2] - a[len(a)-1])))
-      continue
-    }
-    nextCost := int(math.Abs(float64(a[i+1] - a[i])))
-    skipCost := int(math.Abs(float64(a[i+2] - a[i])))
-    if nextCost > skipCost {
-      cost += skipCost
-      i++
+  dpt := make([]int, n)
+  dpt[1] = int(math.Abs(float64(a[1] - a[0])))
+  for i := 2; i < n; i++ {
+    fromMinus2 := int(math.Abs(float64(a[i] - a[i-2]))) + dpt[i-2]
+    fromMinus1 := int(math.Abs(float64(a[i] - a[i-1]))) + dpt[i-1]
+    if fromMinus2 < fromMinus1 {
+      dpt[i] = fromMinus2
     } else {
-      cost += nextCost
+      dpt[i] = fromMinus1
     }
   }
-  return cost
+
+  return dpt[n-1]
 }
